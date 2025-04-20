@@ -8,8 +8,7 @@ const setupAxiosInterceptors = () => {
   // Request interceptor to add JWT token
   axios.interceptors.request.use(
     (config) => {
-    //   const token = localStorage.getItem('jwtToken');
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiQWhhbiBTZW4iLCJlbWFpbCI6InNlbmFoYW4wMDNAZ21haWwuY29tIiwiaXNBZG1pbiI6dHJ1ZSwiaWQiOiI2N2VhN2E3NzAwYjg2YzMxOGY1NjJmNDIiLCJpYXQiOjE3NDUwOTMwMTAsImV4cCI6MTc0NTEwMDIxMH0.Jpwt8mXsXPsMMD0PP0vAW13Y0kuHxn8ef8U8ZtKCWUI'
+      const token = localStorage.getItem('token');
       if (token) {
         config.headers['Authorization'] = `Bearer ${token}`;
       }
@@ -27,7 +26,7 @@ const setupAxiosInterceptors = () => {
     },
     (error) => {
       if (error.response && error.response.status === 401) {
-        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('token');
         
       }
       return Promise.reject(error);

@@ -31,7 +31,11 @@ import makeRequest from "./apiClient";
 
 const { Option } = Select;
 
-export default function AdminDashboard() {
+
+const BASE_URL =
+  import.meta.env.VITE_BASE_URL || "http://localhost:5173";
+
+export default function AdminDashboard({user}) {
   const [isFeeModalOpen, setIsFeeModalOpen] = useState(false);
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
   const [newBatchModalOpen, setNewBatchModalOpen] = useState(false);
@@ -271,15 +275,20 @@ export default function AdminDashboard() {
     }
   }, [feeDetails]);
 
+  const handleLogout = () => {
+    localStorage.clear()
+    window.location.href = `${BASE_URL}`
+  }
+
   return (
     <div className="w-full min-h-screen bg-gray-50 p-6">
       {/* Header */}
       <div className="flex items-center justify-between bg-white p-4 rounded shadow-sm mb-6">
         <h1 className="text-lg font-semibold">Mathify</h1>
         <div className="flex items-center gap-4">
-          <span>Admin Name</span>
-          <Avatar src="https://randomuser.me/api/portraits/women/44.jpg" />
-          <LogoutOutlined className="text-lg cursor-pointer" />
+          <span>{user?.name}</span>
+          <Avatar src={`${user?.avatar}`} />
+          <LogoutOutlined className="text-lg cursor-pointer" onClick={handleLogout} />
         </div>
       </div>
 

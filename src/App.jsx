@@ -1,36 +1,32 @@
-// import { useState } from 'react'
-import './App.css'
-import AdminDashboard  from './AdminDashboard.jsx'
+// App.jsx
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import Home from './Home';
+import Callback from './Callback';
+import Fallback from './Fallback';
+import AdminDashboard from './AdminDashboard';
+import StudentDashboard from './StudentDashboard';
+
+
 function App() {
-//  const [user, setUser] = useState('admin')
-// // setUser('admin')
+  const [user, setUser] = useState({
+    id: '',
+    name: '',
+    email: '',
+    avatar:''
+  });
 
   return (
-    <>
-    {/* {user==='admin'?<AdminDashboard></AdminDashboard>:<StudentDashboard></StudentDashboard>} */}
-    <AdminDashboard></AdminDashboard>
-      {/* <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p> */}
-    </>
-  )
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/callback" element={<Callback setUser={setUser} />} />
+        <Route path="/fallback" element={<Fallback />} />
+        <Route path="/adminDashboard" element={<AdminDashboard user={user} />} />
+        <Route path="/studentDashboard" element={<StudentDashboard user={user} />} />
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;
