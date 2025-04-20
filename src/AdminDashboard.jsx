@@ -16,6 +16,7 @@ import {
   Empty,
   Spin,
   message,
+  Tabs,
 } from "antd";
 import {
   UserOutlined,
@@ -29,13 +30,13 @@ import {
 import dayjs from "dayjs";
 import makeRequest from "./apiClient";
 
+const { TabPane } = Tabs;
+
 const { Option } = Select;
 
+const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:5173";
 
-const BASE_URL =
-  import.meta.env.VITE_BASE_URL || "http://localhost:5173";
-
-export default function AdminDashboard({user}) {
+export default function AdminDashboard({ user }) {
   const [isFeeModalOpen, setIsFeeModalOpen] = useState(false);
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
   const [newBatchModalOpen, setNewBatchModalOpen] = useState(false);
@@ -58,9 +59,61 @@ export default function AdminDashboard({user}) {
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [feeDetails, setFeeDetails] = useState(null);
 
+  const [selectedMonth, setSelectedMonth] = useState(dayjs());
+  const [studentDetails, setStudentDetails] = useState(null);
+  const [attendance, setAttendance] = useState([]);
+  const [feeRecords, setFeeRecords] = useState([]);
+  const [studentMonthLoading, setStudentMonthLoading] = useState(false);
+  const [feeLoading, setFeeLoading] = useState(false);
+  const [isUserDetailsModalOpen, setIsUserDetailsModalOpen] = useState(false);
+
+  const fetchStudentMonthData = async (studentId, month) => {
+    setStudentMonthLoading(true);
+    try {
+      const monthYear = month.format("YYYY-MM");
+      const response = await makeRequest(
+        "get",
+        `/api/students/studentMonthDetails/${studentId}/${monthYear}`
+      );
+      setStudentDetails(response.student);
+      setAttendance(response.attendance);
+    } catch (error) {
+      console.error("Failed to fetch student data:", error);
+    } finally {
+      setStudentMonthLoading(false);
+    }
+  };
+
+  const fetchFeeRecords = async (studentId) => {
+    setFeeLoading(true);
+    try {
+      const response = await makeRequest(
+        "get",
+        `/api/fees/studentFeeRecords/${studentId}`
+      );
+      setFeeRecords(response);
+    } catch (error) {
+      console.error("Failed to fetch fee records:", error);
+    } finally {
+      setFeeLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchBatches();
   }, []);
+
+  useEffect(() => {
+    if (selectedMonth && isUserDetailsModalOpen) {
+      fetchStudentMonthData(selectedStudentId, selectedMonth);
+    }
+  }, [selectedMonth, isUserDetailsModalOpen]);
+
+  useEffect(() => {
+    if (isUserDetailsModalOpen) {
+      fetchFeeRecords(selectedStudentId);
+    }
+  }, [isUserDetailsModalOpen]);
 
   const fetchFeeDetails = async (studentId, monthYear) => {
     try {
@@ -253,7 +306,13 @@ export default function AdminDashboard({user}) {
       key: "actions",
       render: (text, record) => (
         <div className="flex gap-3">
-          <UserOutlined className="text-blue-600 cursor-pointer text-lg" />
+          <UserOutlined
+            className="text-blue-600 cursor-pointer text-lg"
+            onClick={() => {
+              setSelectedStudentId(record?.student?._id);
+              setIsUserDetailsModalOpen(true);
+            }}
+          />
           <DollarOutlined
             className="text-green-600 cursor-pointer text-lg"
             onClick={() => openFeeModal(record.student._id)}
@@ -276,9 +335,9 @@ export default function AdminDashboard({user}) {
   }, [feeDetails]);
 
   const handleLogout = () => {
-    localStorage.clear()
-    window.location.href = `${BASE_URL}`
-  }
+    localStorage.clear();
+    window.location.href = `${BASE_URL}`;
+  };
 
   return (
     <div className="w-full min-h-screen bg-gray-50 p-6">
@@ -288,7 +347,10 @@ export default function AdminDashboard({user}) {
         <div className="flex items-center gap-4">
           <span>{user?.name}</span>
           <Avatar src={`${user?.avatar}`} />
-          <LogoutOutlined className="text-lg cursor-pointer" onClick={handleLogout} />
+          <LogoutOutlined
+            className="text-lg cursor-pointer"
+            onClick={handleLogout}
+          />
         </div>
       </div>
 
@@ -504,7 +566,10 @@ export default function AdminDashboard({user}) {
         footer={null}
       >
         <div className="text-base font-medium mb-2">
-          Batch: <span className="text-blue-600">{ batches.find(batch => batch._id === selectedBatch)?.name}</span>
+          Batch:{" "}
+          <span className="text-blue-600">
+            {batches.find((batch) => batch._id === selectedBatch)?.name}
+          </span>
         </div>
         <DatePicker
           value={selectedDate}
@@ -619,7 +684,10 @@ export default function AdminDashboard({user}) {
         footer={null}
       >
         <div className="text-base font-medium mb-2">
-          Batch: <span className="text-blue-600">{ batches.find(batch => batch._id === selectedBatch)?.name}</span>
+          Batch:{" "}
+          <span className="text-blue-600">
+            {batches.find((batch) => batch._id === selectedBatch)?.name}
+          </span>
         </div>
         <Form
           form={studentForm}
@@ -654,6 +722,135 @@ export default function AdminDashboard({user}) {
             Save Student
           </Button>
         </Form>
+      </Modal>
+
+      <Modal
+        title="Student Details"
+        open={isUserDetailsModalOpen}
+        onCancel={() => setIsUserDetailsModalOpen(false)}
+        footer={null}
+        width={800}
+      >
+        <div className="w-full min-h-screen bg-gray-50 p-6">
+          {/* Month Selector */}
+          <div className="mb-4">
+            <DatePicker
+              picker="month"
+              value={selectedMonth}
+              onChange={(val) => setSelectedMonth(val)}
+              format="YYYY-MM"
+            />
+          </div>
+
+          {/* Student Details */}
+          {loading ? (
+            <div className="flex justify-center my-6">
+              <Spin />
+            </div>
+          ) : studentDetails ? (
+            <div className="bg-white p-6 rounded shadow-sm mb-6">
+              <div className="flex flex-wrap gap-x-12 gap-y-4 text-sm text-gray-700">
+                <div className="w-full sm:w-auto">
+                  <p className="font-semibold text-gray-500">Name</p>
+                  <p>{studentDetails.name}</p>
+                </div>
+                <div className="w-full sm:w-auto">
+                  <p className="font-semibold text-gray-500">Email</p>
+                  <p>{studentDetails.email}</p>
+                </div>
+                <div className="w-full sm:w-auto">
+                  <p className="font-semibold text-gray-500">Phone</p>
+                  <p>{studentDetails.phone}</p>
+                </div>
+                <div className="w-full sm:w-auto">
+                  <p className="font-semibold text-gray-500">Batch</p>
+                  <p>{studentDetails.batchName}</p>
+                </div>
+                <div className="w-full sm:w-auto">
+                  <p className="font-semibold text-gray-500">
+                    Total Classes Attended
+                  </p>
+                  <p>{studentDetails.totalClasses}</p>
+                </div>
+                <div className="w-full sm:w-auto">
+                  <p className="font-semibold text-gray-500">Total Hours</p>
+                  <p>{studentDetails.totalHours}</p>
+                </div>
+                <div className="w-full sm:w-auto">
+                  <p className="font-semibold text-gray-500">Fee Status</p>
+                  <Tag color={studentDetails.feesPaid ? "green" : "orange"}>
+                    {studentDetails.feesPaid ? "Paid" : "Pending"}
+                  </Tag>
+                </div>
+                <div className="w-full sm:w-auto">
+                  <p className="font-semibold text-gray-500">Fees This Month</p>
+                  <p>₹{studentDetails.feesDue}</p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Tabs */}
+          <Tabs defaultActiveKey="1">
+            <TabPane tab="Attendance" key="1">
+              {attendance.length === 0 ? (
+                <Empty description="No attendance records." />
+              ) : (
+                <div className="space-y-4">
+                  {attendance.map((record, index) => (
+                    <div
+                      key={index}
+                      className="bg-white p-3 rounded shadow-sm flex justify-between items-center"
+                    >
+                      <div>
+                        <p className="font-medium">
+                          {dayjs(record.date).format("DD MMM YYYY")}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {record.hours} hour(s)
+                        </p>
+                      </div>
+                      <Tag color={record.present ? "green" : "red"}>
+                        {record.present ? "Present" : "Absent"}
+                      </Tag>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabPane>
+
+            <TabPane tab="Fee Records" key="2">
+              {feeLoading ? (
+                <div className="flex justify-center my-6">
+                  <Spin />
+                </div>
+              ) : feeRecords.length === 0 ? (
+                <Empty description="No fee records found." />
+              ) : (
+                <div className="space-y-4">
+                  {feeRecords.map((fee, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-white p-3 rounded shadow-sm flex justify-between items-center"
+                    >
+                      <div>
+                        <p className="font-medium">
+                          {dayjs(fee.month, "YYYY-MM").format("MMMM YYYY")}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          ₹{fee.totalFeeExpected}
+                        </p>
+                      </div>
+                      <Tag color={fee.feesPaid ? "green" : "orange"}>
+                        {fee.feesPaid ? "Paid" : "Pending"}
+                      </Tag>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabPane>
+          </Tabs>
+        </div>
       </Modal>
     </div>
   );
