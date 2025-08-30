@@ -10,6 +10,7 @@ import {
 } from "@ant-design/icons";
 import makeRequest from "./apiClient";
 import AddStudentModal from "./components/AddStudentModal";
+import StudentAttendanceModal from "./components/StudentAttendanceModal";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:5173";
 
@@ -21,8 +22,22 @@ const AdminDashboard = ({ user }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
 
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const [attendanceModalOpen, setAttendanceModalVisible] = useState(false);
+
   const handleAddStudent = () => setModalVisible(true);
   const handleCloseModal = () => setModalVisible(false);
+
+  const handleAttendanceModalOpen = (studentId) => {
+    console.log("attendance modal", studentId);
+    setSelectedStudentId(studentId);
+    setAttendanceModalVisible(true);
+  };
+
+  const handleAttendanceModalClose = () => {
+    setSelectedStudentId(null);
+    setAttendanceModalVisible(false);
+  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -77,7 +92,10 @@ const AdminDashboard = ({ user }) => {
             />
           </Tooltip>
           <Tooltip title="Attendance">
-            <CheckCircleOutlined className="cursor-pointer text-green-500" />
+            <CheckCircleOutlined
+              className="cursor-pointer text-green-500"
+              onClick={() => handleAttendanceModalOpen(student._id)}
+            />
           </Tooltip>
           <Tooltip title="Fee Records">
             <WalletOutlined className="cursor-pointer text-orange-500" />
@@ -140,6 +158,11 @@ const AdminDashboard = ({ user }) => {
         onClose={handleCloseModal}
         fetchStudents={fetchAllStudents}
       />
+      <StudentAttendanceModal
+        open={attendanceModalOpen}
+        onClose={handleAttendanceModalClose}
+        studentId={selectedStudentId}
+      />
       <Modal
         open={selectedStudent !== null}
         title="Student Details"
@@ -183,6 +206,18 @@ const AdminDashboard = ({ user }) => {
                 Objective of Enrolling
               </p>
               <p>{selectedStudent?.objectiveOfEnrolling || "-"}</p>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">
+                Examinations Targetting
+              </p>
+              <p>{selectedStudent?.examinationsTargetting || "-"}</p>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">
+                Desired Number of Hours
+              </p>
+              <p>{selectedStudent?.desiredNumberOfHours || "-"}</p>
             </div>
             <div>
               <p className="font-semibold text-gray-500">Fees Per Hour</p>
