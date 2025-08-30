@@ -39,7 +39,7 @@ const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:5173";
 export default function AdminDashboard({ user }) {
   const [isFeeModalOpen, setIsFeeModalOpen] = useState(false);
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
-  const [newBatchModalOpen, setNewBatchModalOpen] = useState(false);
+  const [newAddStudentModalOpen, setNewAddStudentModalOpen] = useState(false);
   const [newStudentModalOpen, setNewStudentModalOpen] = useState(false);
   const [form] = Form.useForm();
   const [batchForm] = Form.useForm();
@@ -234,7 +234,7 @@ export default function AdminDashboard({ user }) {
         "/api/batches/createNewBatch",
         payload
       );
-      setNewBatchModalOpen(false);
+      setNewAddStudentModalOpen(false);
       batchForm.resetFields();
       fetchBatches();
     } catch (error) {
@@ -370,16 +370,16 @@ export default function AdminDashboard({ user }) {
         </Select>
         <Button
           icon={<PlusOutlined />}
-          onClick={() => setNewBatchModalOpen(true)}
+          onClick={() => setNewAddStudentModalOpen(true)}
         >
-          New Batch
+          Add Student
         </Button>
       </div>
 
       {/* Student Table */}
       <Card>
-        {selectedBatch ? (
-          studentLoading ? (
+         {/* (
+          studenLoading ? (
             <div className="text-center">
               <Spin />
             </div>
@@ -395,13 +395,13 @@ export default function AdminDashboard({ user }) {
                 >
                   New Student
                 </Button>
-              </div>
+              </div> */}
               <Table
                 columns={columns}
                 dataSource={attendanceData}
                 pagination={false}
               />
-            </>
+            {/* </>
           ) : (
             <>
               <div className="flex justify-end mb-4 gap-2">
@@ -418,12 +418,7 @@ export default function AdminDashboard({ user }) {
               />
             </>
           )
-        ) : (
-          <Empty
-            image={<TeamOutlined style={{ fontSize: 48 }} />}
-            description={<span>Please select a batch to continue.</span>}
-          />
-        )}
+        ) */}
       </Card>
 
       {/* Fee Modal */}
@@ -642,9 +637,9 @@ export default function AdminDashboard({ user }) {
 
       {/* New Batch Modal */}
       <Modal
-        title="Create a New Batch"
-        open={newBatchModalOpen}
-        onCancel={() => setNewBatchModalOpen(false)}
+        title="Add Student"
+        open={newAddStudentModalOpen}
+        onCancel={() => setNewAddStudentModalOpen(false)}
         footer={null}
       >
         <Form
@@ -652,20 +647,20 @@ export default function AdminDashboard({ user }) {
           layout="vertical"
           onFinish={handleNewBatchSubmit}
         >
-          <Form.Item
+          {/* <Form.Item
             name="name"
             label="Batch Name"
             rules={[{ required: true, message: "Please enter batch name" }]}
           >
             <Input placeholder="Enter batch name" />
-          </Form.Item>
+          </Form.Item> */}
           <Form.Item
-            name="feesPerHour"
-            label="Fees Per Hour"
-            rules={[{ required: true, message: "Please enter fee amount" }]}
+            name="rowNumber"
+            label="Record number"
+            rules={[{ required: true, message: "Please enter record no." }]}
           >
             <InputNumber
-              placeholder="Enter fee"
+              placeholder="Enter Row Number"
               style={{ width: "100%" }}
               min={1}
             />
