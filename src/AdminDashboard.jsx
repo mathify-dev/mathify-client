@@ -118,7 +118,7 @@ const AdminDashboard = ({ user }) => {
           dataSource={filteredStudents}
           columns={columns}
           rowKey="_id"
-          pagination={false}
+          pagination={10}
         />
       )}
        <AddStudentModal visible={modalVisible} onClose={handleCloseModal} fetchStudents={fetchAllStudents} />

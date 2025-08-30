@@ -202,6 +202,7 @@ const AddStudentModal = ({ visible, onClose, fetchStudents }) => {
                           handleTimeChange(record.day, "from", value)
                         }
                         format="HH:mm"
+                        minuteStep={15}
                       />
                     ),
                   },
@@ -216,6 +217,7 @@ const AddStudentModal = ({ visible, onClose, fetchStudents }) => {
                           handleTimeChange(record.day, "to", value)
                         }
                         format="HH:mm"
+                        minuteStep={15}
                       />
                     ),
                   },
