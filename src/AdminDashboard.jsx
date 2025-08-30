@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Input, Tooltip, Avatar, Spin } from "antd";
-import { PlusOutlined, SearchOutlined, EyeOutlined, CheckCircleOutlined, WalletOutlined, LogoutOutlined } from "@ant-design/icons";
+import { Table, Button, Input, Tooltip, Avatar, Spin, Modal } from "antd";
+import {
+  PlusOutlined,
+  SearchOutlined,
+  EyeOutlined,
+  CheckCircleOutlined,
+  WalletOutlined,
+  LogoutOutlined,
+} from "@ant-design/icons";
 import makeRequest from "./apiClient";
 import AddStudentModal from "./components/AddStudentModal";
 
@@ -12,6 +19,7 @@ const AdminDashboard = ({ user }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   const handleAddStudent = () => setModalVisible(true);
   const handleCloseModal = () => setModalVisible(false);
@@ -24,7 +32,10 @@ const AdminDashboard = ({ user }) => {
   const fetchAllStudents = async () => {
     setLoading(true);
     try {
-      const response = await makeRequest("get", "/api/students/fetchAllStudents");
+      const response = await makeRequest(
+        "get",
+        "/api/students/fetchAllStudents"
+      );
       setStudents(response || []);
     } catch (error) {
       console.error("Failed to fetch students:", error);
@@ -37,7 +48,7 @@ const AdminDashboard = ({ user }) => {
     setSearchQuery(e.target.value);
   };
 
-  const filteredStudents = students.filter(student => {
+  const filteredStudents = students.filter((student) => {
     const searchStr = searchQuery.toLowerCase();
     return (
       student.name.toLowerCase().includes(searchStr) ||
@@ -55,12 +66,15 @@ const AdminDashboard = ({ user }) => {
     { title: "Name", dataIndex: "name", key: "name" },
     { title: "Email", dataIndex: "email", key: "email" },
     {
-      title: "Actions", 
-      key: "actions", 
+      title: "Actions",
+      key: "actions",
       render: (_, student) => (
         <div className="flex space-x-3">
           <Tooltip title="View Details">
-            <EyeOutlined className="cursor-pointer text-blue-500" />
+            <EyeOutlined
+              className="cursor-pointer text-blue-500"
+              onClick={() => setSelectedStudent(student)}
+            />
           </Tooltip>
           <Tooltip title="Attendance">
             <CheckCircleOutlined className="cursor-pointer text-green-500" />
@@ -69,8 +83,8 @@ const AdminDashboard = ({ user }) => {
             <WalletOutlined className="cursor-pointer text-orange-500" />
           </Tooltip>
         </div>
-      )
-    }
+      ),
+    },
   ];
 
   return (
@@ -121,7 +135,85 @@ const AdminDashboard = ({ user }) => {
           pagination={10}
         />
       )}
-       <AddStudentModal visible={modalVisible} onClose={handleCloseModal} fetchStudents={fetchAllStudents} />
+      <AddStudentModal
+        visible={modalVisible}
+        onClose={handleCloseModal}
+        fetchStudents={fetchAllStudents}
+      />
+      <Modal
+        open={selectedStudent !== null}
+        title="Student Details"
+        onCancel={() => setSelectedStudent(null)}
+        footer={null}
+        width={700}
+      >
+        <div className="p-6">
+          {/* Student Details */}
+          <div className="flex flex-wrap gap-x-12 gap-y-4 text-sm text-gray-700">
+            <div>
+              <p className="font-semibold text-gray-500">Name</p>
+              <p>{selectedStudent?.name || "-"}</p>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">Email</p>
+              <p>{selectedStudent?.email || "-"}</p>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">Phone</p>
+              <p>{selectedStudent?.phone || "-"}</p>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">Parents Name</p>
+              <p>{selectedStudent?.parentsName || "-"}</p>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">Date of Birth</p>
+              <p>{selectedStudent?.dateOfBirth || "-"}</p>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">Gender</p>
+              <p>{selectedStudent?.gender || "-"}</p>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">Mode of Learning</p>
+              <p>{selectedStudent?.preferredModeOfLearning || "-"}</p>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">
+                Objective of Enrolling
+              </p>
+              <p>{selectedStudent?.objectiveOfEnrolling || "-"}</p>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500">Fees Per Hour</p>
+              <p>₹{selectedStudent?.feesPerHour || 0}</p>
+            </div>
+          </div>
+          {selectedStudent?.schedule && (
+            <div className="mt-6">
+              <p className="font-semibold text-gray-500 mb-2">Schedule</p>
+              <Table
+                dataSource={Object.entries(selectedStudent?.schedule || {}).map(
+                  ([day, time]) => ({
+                    key: day,
+                    day,
+                    from: time?.from || "-",
+                    to: time?.to || "-",
+                  })
+                )}
+                columns={[
+                  { title: "Day", dataIndex: "day", key: "day" },
+                  { title: "From", dataIndex: "from", key: "from" },
+                  { title: "To", dataIndex: "to", key: "to" },
+                ]}
+                pagination={false}
+                bordered
+                size="small"
+              />
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };
