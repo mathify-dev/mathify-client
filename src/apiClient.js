@@ -43,9 +43,10 @@ setupAxiosInterceptors();
  * @param {string} url - API endpoint path (e.g., '/users')
  * @param {Object} [payload] - Request body data (for POST, PUT, etc.)
  * @param {Object} [params] - Query parameters (for GET, etc.)
+ * @param {Object} [axiosConfig] - Additional Axios config (e.g., responseType)
  * @returns {Promise} - Resolves with response data or rejects with error
  */
-const makeRequest = async (method, url, payload = null, params = null) => {
+const makeRequest = async (method, url, payload = null, params = null, axiosConfig = {}) => {
   try {
     // Prepend the base URL to the provided endpoint
     const fullUrl = `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
@@ -54,7 +55,8 @@ const makeRequest = async (method, url, payload = null, params = null) => {
       method: method.toLowerCase(),
       url: fullUrl,
       ...(payload && { data: payload }),
-      ...(params && { params })
+      ...(params && { params }),
+      ...axiosConfig
     };
 
     const response = await axios(config);
