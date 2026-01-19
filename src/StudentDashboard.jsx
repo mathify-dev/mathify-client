@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Tabs, Tag, Avatar, Spin, Table, Empty, Tooltip } from "antd";
-import { LogoutOutlined } from "@ant-design/icons";
+import { Tabs, Tag, Avatar, Spin, Table, Empty, Tooltip, Button, message } from "antd";
+import { LogoutOutlined, DownloadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import makeRequest from "./apiClient";
 
@@ -62,6 +62,31 @@ const StudentDashboard = ({ user }) => {
       console.error("Failed to fetch fee records:", error);
     } finally {
       setLoadingFees(false);
+    }
+  };
+
+  const handleDownloadInvoice = async (month) => {
+    try {
+      const response = await makeRequest(
+        "get",
+        `/api/fees/generateInvoice/${user?.id}`,
+        null,
+        { month },
+        { responseType: 'blob' }
+      );
+      
+      // Create a blob link to download
+      const url = window.URL.createObjectURL(new Blob([response]));
+      const link = document.createElement('a');
+      link.href = url;
+      const fileName = `invoice-${user?.id}-${month}.pdf`;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Failed to download invoice:", error);
+      message.error("Failed to download invoice");
     }
   };
 
@@ -191,7 +216,7 @@ const StudentDashboard = ({ user }) => {
               {feeRecords?.feesSummary?.map((details) => (
                 <div
                   key={details?.billingMonth}
-                  className="bg-white p-3 rounded shadow-sm grid grid-cols-4 gap-4 items-center"
+                  className="bg-white p-3 rounded shadow-sm grid grid-cols-5 gap-4 items-center"
                 >
                   <p className="font-medium">
                     {details?.billingMonth
@@ -211,6 +236,15 @@ const StudentDashboard = ({ user }) => {
                         {dayjs(details.paidOn).format("DD MMM YYYY")} via {details?.paymentMethod || "-"}
                       </p>
                     )}
+                  </div>
+                  <div className="justify-self-end">
+                    <Tooltip title="Download Invoice">
+                      <Button 
+                        type="text" 
+                        icon={<DownloadOutlined className="text-blue-600" />} 
+                        onClick={() => handleDownloadInvoice(details.billingMonth)}
+                      />
+                    </Tooltip>
                   </div>
                 </div>
               ))}

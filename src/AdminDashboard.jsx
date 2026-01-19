@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Input, Tooltip, Avatar, Spin, Modal } from "antd";
+import { Table, Button, Input, Tooltip, Avatar, Spin } from "antd";
 import {
   PlusOutlined,
   SearchOutlined,
@@ -11,6 +11,8 @@ import {
 import makeRequest from "./apiClient";
 import AddStudentModal from "./components/AddStudentModal";
 import StudentAttendanceModal from "./components/StudentAttendanceModal";
+import StudentDetailsModal from "./components/StudentDetailsModal";
+import StudentFeesModal from "./components/StudentFeesModal";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:5173";
 
@@ -24,6 +26,8 @@ const AdminDashboard = ({ user }) => {
 
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [attendanceModalOpen, setAttendanceModalVisible] = useState(false);
+  const [feesModalOpen, setFeesModalVisible] = useState(false);
+  const [selectedStudentIdForFees, setSelectedStudentIdForFees] = useState(null);
 
   const handleAddStudent = () => setModalVisible(true);
   const handleCloseModal = () => setModalVisible(false);
@@ -37,6 +41,16 @@ const AdminDashboard = ({ user }) => {
   const handleAttendanceModalClose = () => {
     setSelectedStudentId(null);
     setAttendanceModalVisible(false);
+  };
+
+  const handleFeesModalOpen = (studentId) => {
+    setSelectedStudentIdForFees(studentId);
+    setFeesModalVisible(true);
+  };
+
+  const handleFeesModalClose = () => {
+    setSelectedStudentIdForFees(null);
+    setFeesModalVisible(false);
   };
 
   const handleLogout = () => {
@@ -101,7 +115,10 @@ const AdminDashboard = ({ user }) => {
             />
           </Tooltip>
           <Tooltip title="Fee Records">
-            <WalletOutlined className="cursor-pointer text-orange-500" />
+            <WalletOutlined 
+              className="cursor-pointer text-orange-500" 
+              onClick={() => handleFeesModalOpen(student._id)}
+            />
           </Tooltip>
         </div>
       ),
@@ -166,92 +183,16 @@ const AdminDashboard = ({ user }) => {
         onClose={handleAttendanceModalClose}
         studentId={selectedStudentId}
       />
-      <Modal
+      <StudentFeesModal
+        open={feesModalOpen}
+        onClose={handleFeesModalClose}
+        studentId={selectedStudentIdForFees}
+      />
+      <StudentDetailsModal
         open={selectedStudent !== null}
-        title="Student Details"
-        onCancel={() => setSelectedStudent(null)}
-        footer={null}
-        width={700}
-      >
-        <div className="p-6">
-          {/* Student Details */}
-          <div className="flex flex-wrap gap-x-12 gap-y-4 text-sm text-gray-700">
-            <div>
-              <p className="font-semibold text-gray-500">Name</p>
-              <p>{selectedStudent?.name || "-"}</p>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-500">Email</p>
-              <p>{selectedStudent?.email || "-"}</p>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-500">Phone</p>
-              <p>{selectedStudent?.phone || "-"}</p>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-500">Parents Name</p>
-              <p>{selectedStudent?.parentsName || "-"}</p>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-500">Date of Birth</p>
-              <p>{selectedStudent?.dateOfBirth || "-"}</p>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-500">Gender</p>
-              <p>{selectedStudent?.gender || "-"}</p>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-500">Mode of Learning</p>
-              <p>{selectedStudent?.preferredModeOfLearning || "-"}</p>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-500">
-                Objective of Enrolling
-              </p>
-              <p>{selectedStudent?.objectiveOfEnrolling || "-"}</p>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-500">
-                Examinations Targetting
-              </p>
-              <p>{selectedStudent?.examinationsTargetting || "-"}</p>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-500">
-                Desired Number of Hours
-              </p>
-              <p>{selectedStudent?.desiredNumberOfHours || "-"}</p>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-500">Fees Per Hour</p>
-              <p>₹{selectedStudent?.feesPerHour || 0}</p>
-            </div>
-          </div>
-          {selectedStudent?.schedule && (
-            <div className="mt-6">
-              <p className="font-semibold text-gray-500 mb-2">Schedule</p>
-              <Table
-                dataSource={Object.entries(selectedStudent?.schedule || {}).map(
-                  ([day, time]) => ({
-                    key: day,
-                    day,
-                    from: time?.from || "-",
-                    to: time?.to || "-",
-                  })
-                )}
-                columns={[
-                  { title: "Day", dataIndex: "day", key: "day" },
-                  { title: "From", dataIndex: "from", key: "from" },
-                  { title: "To", dataIndex: "to", key: "to" },
-                ]}
-                pagination={false}
-                bordered
-                size="small"
-              />
-            </div>
-          )}
-        </div>
-      </Modal>
+        onClose={() => setSelectedStudent(null)}
+        student={selectedStudent}
+      />
     </div>
   );
 };
