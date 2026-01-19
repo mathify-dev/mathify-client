@@ -51,6 +51,9 @@ const AdminDashboard = ({ user }) => {
         "get",
         "/api/students/fetchAllStudents"
       );
+      for (let student = 0; student < response.length; student++) {
+        response[student].key = student + 1;
+      }
       setStudents(response || []);
     } catch (error) {
       console.error("Failed to fetch students:", error);
@@ -68,7 +71,7 @@ const AdminDashboard = ({ user }) => {
     return (
       student.name.toLowerCase().includes(searchStr) ||
       student.email.toLowerCase().includes(searchStr) ||
-      student._id.toString().includes(searchStr)
+      student.key.toString().includes(searchStr)
     );
   });
 
@@ -77,7 +80,7 @@ const AdminDashboard = ({ user }) => {
   }, []);
 
   const columns = [
-    { title: "ID", dataIndex: "_id", key: "_id" },
+    { title: "ID", dataIndex: "key", key: "key" },
     { title: "Name", dataIndex: "name", key: "name" },
     { title: "Email", dataIndex: "email", key: "email" },
     {
